@@ -4,30 +4,12 @@
 
 <h2>New Category</h2>
 
-<EditForm Model="@category" OnValidSubmit="@AddCategory" >
-	<DataAnnotationsValidator />
-	<ValidationSummary />
-
-	<div class="form-group">
-		<label for="name">Name</label>
-		<div>
-			<InputText @bind-Value="@category.Name" class="form-control" />
-			<ValidationMessage For="@(() => category.Name)" />
-		</div>
-	</div>
-	<div class="form-group">
-		<label for="name">Description</label>
-		<div>
-			<InputText @bind-Value="@category.Description" class="form-control" />
-			<ValidationMessage For="@(() => category.Description)" />
-		</div>
-	</div>
-	
-	<div class="custom-top">
-		<button type="submit" class="btn btn-success">Add</button>
-		<button class="btn btn-danger" @onclick="@(() => navigation.NavigateTo("category"))">Cancel</button>
-	</div>
-</EditForm>
+<CategoryForm 
+	Category="@category"
+	OnValidSubmit="@AddCategory"
+	ButtonTextSubmit="Edit"
+	ButtonTextCancel="Cancel">
+</CategoryForm>
 
 @code {
 	Category category = new Category();
