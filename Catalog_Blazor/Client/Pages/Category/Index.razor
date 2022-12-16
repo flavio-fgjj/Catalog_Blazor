@@ -37,12 +37,24 @@ else
 	</table>
 }
 
+<ConfirmDialog
+	@ref="confirmDialog" 
+	onCancel="@NotConfirmRemove"
+	onConfirm="@ConfirmRemove">
+	<div>This action couldn't be reverted</div>
+</ConfirmDialog>
+
+<hr />
 <div>
 	<a class="btn btn-success" href="category/add">New Category</a>
 </div>
 @code {
 
 	Category[] categories { get; set; }
+
+	ConfirmDialog confirmDialog;
+	int categoryIdToBeRemoved;
+
 	protected override async Task OnInitializedAsync()
 	{
 		await LoadCategories();
@@ -55,7 +67,20 @@ else
 
 	async void RemoveCategory(int categoryId)
 	{
-		await http.DeleteAsync($"api/category/{categoryId}");
+		confirmDialog.Show();
+		categoryIdToBeRemoved = categoryId;
+
+	}
+
+	async Task ConfirmRemove()
+	{
+		await http.DeleteAsync($"api/category/{categoryIdToBeRemoved}");
+		confirmDialog.Hide();
 		await LoadCategories();
+	}
+
+	void NotConfirmRemove()
+	{
+		confirmDialog.Hide();
 	}
 }
