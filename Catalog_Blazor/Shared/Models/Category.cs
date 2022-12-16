@@ -1,18 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.ComponentModel.DataAnnotations;
 
-namespace Catalog_Blazor.Shared.Models
+namespace Catalog_Blazor.Shared.Models;
+
+public class Category
 {
-    public class Category
-    {
-        public int CategoryId { get; set; }
-        public string? Name { get; set; }
-        public string? Description { get; set; }
+    public int CategoryId { get; set; }
+    [MaxLength(100)]
+    public string? Name { get; set; }
+    [MaxLength(200)]
+    public string? Description { get; set; }
 
-        public ICollection<Product>? Products { get; set; }
+    public ICollection<Product>? Products { get; set; }
 
-    }
 }
