@@ -1,0 +1,40 @@
+﻿@page "/category/add"
+@inject HttpClient http
+@inject NavigationManager navigation
+
+<h2>New Category</h2>
+
+<EditForm Model="@category" OnValidSubmit="@AddCategory" >
+	<DataAnnotationsValidator />
+	<ValidationSummary />
+
+	<div class="form-group">
+		<label for="name">Name</label>
+		<div>
+			<InputText @bind-Value="@category.Name" class="form-control" />
+			<ValidationMessage For="@(() => category.Name)" />
+		</div>
+	</div>
+	<div class="form-group">
+		<label for="name">Description</label>
+		<div>
+			<InputText @bind-Value="@category.Description" class="form-control" />
+			<ValidationMessage For="@(() => category.Description)" />
+		</div>
+	</div>
+	
+	<div class="custom-top">
+		<button type="submit" class="btn btn-success">Add</button>
+		<button class="btn btn-danger" @onclick="@(() => navigation.NavigateTo("category"))">Cancel</button>
+	</div>
+</EditForm>
+
+@code {
+	Category category = new Category();
+
+	async Task AddCategory()
+	{
+		await http.PostAsJsonAsync("/api/category", category);
+		navigation.NavigateTo("category");
+	}
+}
