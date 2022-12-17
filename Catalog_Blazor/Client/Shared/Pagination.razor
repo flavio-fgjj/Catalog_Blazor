@@ -1,0 +1,87 @@
+﻿<nav aria-label="Pagination">
+	<ul class="pagination justify-content-center">
+		@foreach (var link in links)
+		{
+			<li @onclick="@(() => SelectedPageLink(link))"
+				style="cursor: pointer;"
+				class="page-item @(link.Enabled ? null : "disabled") @(link.Active ? "active" : null)">
+				<span class="page-link" href="#">@link.Text</span>
+			</li>
+		}
+	</ul>
+</nav>
+
+@code {
+	[Parameter] public int ActualPage { get; set; } = 1;
+	[Parameter] public int TotalPages { get; set; }
+	[Parameter]	public int Raio { get; set; } = 3;
+	[Parameter]	public EventCallback<int> SelectedPage { get; set; }
+
+	List<LinkModel> links;
+
+	private async Task SelectedPageLink(LinkModel link)
+	{
+		if (link.Page == ActualPage) return;
+		if (!link.Enabled) return;
+
+		ActualPage = link.Page;
+		await SelectedPage.InvokeAsync(link.Page);
+	}
+
+	class LinkModel
+	{
+		public LinkModel(int page) : this(page, true)
+		{ }
+
+		public LinkModel(int page, bool enabled) : this(page, enabled, page.ToString())
+		{ }
+
+		public LinkModel(int page, bool enabled, string text)
+		{
+			Page = page;
+			Enabled = enabled;
+			Text = text;
+		}
+
+		public string? Text { get; set; }
+		public int Page { get; set; }
+		public bool Enabled { get; set; }
+		public bool Active { get; set; }
+	}
+
+	protected override void OnParametersSet()
+	{
+		base.OnParametersSet();
+
+		LoadPages();
+	}
+
+	private void LoadPages()
+	{
+		links = new List<LinkModel>();
+
+		// previous page
+		var isLinkPreviousPageEnabled = ActualPage != 1;
+		var previousPage = ActualPage - 1;
+
+		links.Add(new LinkModel(previousPage, isLinkPreviousPageEnabled, "Previous"));
+
+		// specific page
+		for(int i=1; i <= TotalPages; i++)
+		{
+			if (i >= ActualPage - Raio && i <= ActualPage + Raio)
+			{
+				links.Add(new LinkModel(i)
+					{
+						Active = ActualPage == 1
+					});
+			}
+		}
+
+		// next page
+		var isLinkNextPageEnabled = ActualPage != TotalPages;
+		var nextPage = ActualPage + 1;
+
+		links.Add(new LinkModel(nextPage, isLinkNextPageEnabled, "Next"));
+	}
+}

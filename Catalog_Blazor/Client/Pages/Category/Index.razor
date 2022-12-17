@@ -1,5 +1,10 @@
 ﻿@page "/category"
 @inject HttpClient http
+@using System.Text.Json
+
+<div>
+	<a class="btn btn-success" href="category/add">New Category</a>
+</div>
 
 <h2>Categories</h2>
 
@@ -7,7 +12,7 @@
 {
 	<p><em>Loading...</em></p>
 }
-else if (categories.Length == 0)
+else if (categories.Count == 0)
 {
 	<p><em>No categories</em></p>
 }
@@ -45,14 +50,22 @@ else
 </ConfirmDialog>
 
 <hr />
-<div>
-	<a class="btn btn-success" href="category/add">New Category</a>
-</div>
+<Pagination
+	TotalPages="TotalPages" 
+	ActualPage="ActualPage"
+	Raio="2"
+	SelectedPage="SelectedPage">
+</Pagination>
+
 @code {
 
-	Category[] categories { get; set; }
+	List<Category>? categories { get; set; }
 
-	ConfirmDialog confirmDialog;
+	private int TotalPages;
+	private int ActualPage = 1;
+
+
+	ConfirmDialog? confirmDialog;
 	int categoryIdToBeRemoved;
 
 	protected override async Task OnInitializedAsync()
@@ -60,14 +73,48 @@ else
 		await LoadCategories();
 	}
 
-	async Task LoadCategories()
+	private async Task SelectedPage(int page)
 	{
-		categories = await http.GetFromJsonAsync<Category[]>("api/category");
+		ActualPage = page;
+		await LoadCategories(page);
 	}
 
-	async void RemoveCategory(int categoryId)
+	async Task LoadCategories(int page = 1, int totalPerPage = 5)
 	{
-		confirmDialog.Show();
+		//categories = await http.GetFromJsonAsync<Category[]>("api/category");
+		var httpResponse = await http.GetAsync($"api/category?page={page}&totalPerPage={totalPerPage}");
+
+		if (httpResponse.IsSuccessStatusCode)
+		{
+			string? totalPerPageHeader = httpResponse.Headers.GetValues("totalPages").FirstOrDefault();
+			TotalPages = String.IsNullOrEmpty(totalPerPageHeader) ? 1 : int.Parse(totalPerPageHeader);
+
+			var responseString = await httpResponse.Content.ReadAsStringAsync();
+
+			categories = JsonSerializer.Deserialize<List<Category>>(responseString,
+				new JsonSerializerOptions()
+				{
+					PropertyNameCaseInsensitive = true
+				});
+		}
+		else 
+		{
+			TotalPages = 1;
+			categories = new List<Category>();
+			Category cat = new Category()
+				{
+					CategoryId = 1,
+					Name = "Erro",
+					Description = httpResponse.StatusCode.ToString()
+
+				};
+
+		}
+	}
+
+	void RemoveCategory(int categoryId)
+	{
+		confirmDialog?.Show();
 		categoryIdToBeRemoved = categoryId;
 
 	}
@@ -75,12 +122,12 @@ else
 	async Task ConfirmRemove()
 	{
 		await http.DeleteAsync($"api/category/{categoryIdToBeRemoved}");
-		confirmDialog.Hide();
+		confirmDialog?.Hide();
 		await LoadCategories();
 	}
 
 	void NotConfirmRemove()
 	{
-		confirmDialog.Hide();
+		confirmDialog?.Hide();
 	}
 }
